@@ -1,0 +1,26 @@
+{% if paths.up is not null %}
+    <a href="?fb_cp=/{{ paths.up }}">
+        {{ __("Up one directory") }}
+    </a>
+{% endif %}
+<h1>{{ __("Files in ") ~ paths.current|default('/') }}</h1>
+{% if files is empty %}
+<p class="file-browser file-browser-empty-list">
+{{ __("No files found") }}
+</p>
+{% else %}
+<ul class="file-browser file-browser-list">
+    {% for file in files %}
+    <li class="file-browser file-browser-{{ file.getType() }}">
+        {% if file.type == 'file' %}
+            {% set link = "/files/" ~ paths.current ~ '/' ~ file.relativePathname %}
+        {% elseif file.type == 'dir' %}
+            {% set link = "?fb_cp=" ~ paths.current ~ '/' ~ file.relativePathname %}
+        {% endif %}
+        <a href="{{ link }}">
+        {{ file.relativePathname }}
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
