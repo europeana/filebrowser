@@ -56,7 +56,7 @@ class Extension extends \Bolt\BaseExtension
             $path .= "$currentPath/";
         }
         $finder = new Finder();
-        $extensionRegex = '/\\.' . implode('|',
+        $extensionRegex = '/^[^\.]*$|\\.' . implode('|',
             array_map('preg_quote',
                 $this->app['config']->get('general/accept_file_types'))) . '$/';
         error_log($extensionRegex);
@@ -94,9 +94,11 @@ class Extension extends \Bolt\BaseExtension
     private function getContext($mode, $rootPath, $currentPath) {
         $paths = $this->sanitizePaths($rootPath, $currentPath);
         list($rootPath, $currentPath, $upPath) = array_values($paths);
+        $iconsPath = $this->app['paths']['app'] . "extensions/FileBrowser/assets/icons";
         return array(
             'mode' => $mode,
             'paths' => $paths,
+            'icons' => $iconsPath,
             'files' => $this->listFiles($rootPath, $currentPath));
     }
 
