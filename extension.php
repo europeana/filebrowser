@@ -90,6 +90,15 @@ class Extension extends \Bolt\BaseExtension
     }
 
     private function getContext($mode, $rootPath, $currentPath) {
+        $paths = $this->sanitizePaths($rootPath, $currentPath);
+        list($rootPath, $currentPath, $upPath) = array_values($paths);
+        return array(
+            'mode' => $mode,
+            'paths' => $paths,
+            'files' => $this->listFiles($rootPath, $currentPath));
+    }
+
+    private function sanitizePaths($rootPath = '', $currentPath = '') {
         $rootPP = $this->splitPath($rootPath);
         $currentPP = $this->splitPath($currentPath);
         if (count($currentPP)) {
@@ -101,13 +110,10 @@ class Extension extends \Bolt\BaseExtension
         }
 
         return array(
-            'mode' => $mode,
-            'paths' => array(
-                'root' => implode('/', $rootPP),
-                'current' => implode('/', $currentPP),
-                'up' => ($upPP === null) ? null : implode('/', $upPP)
-            ),
-            'files' => $this->listFiles($rootPath, $currentPath));
+            'root' => implode('/', $rootPP),
+            'current' => implode('/', $currentPP),
+            'up' => ($upPP === null) ? null : implode('/', $upPP),
+        );
     }
 
     public function asyncGetFiles(Request $request) {
@@ -115,6 +121,7 @@ class Extension extends \Bolt\BaseExtension
         $this->validateMode($mode);
         $rootPath = ($request->get('fb_root') ? $request->get('fb_root') : '');
         $currentPath = ($request->get('fb_cp') ? $request->get('fb_cp') : '');
+
         $context = $this->getContext($mode, $rootPath, $currentPath);
         return $this->render("list.twig", $context);
     }
