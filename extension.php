@@ -58,7 +58,6 @@ class Extension extends \Bolt\BaseExtension
         if (!empty($currentPath)) {
             $path .= "$currentPath/";
         }
-        error_log($path);
         $finder = new Finder();
         $files =
             $finder
