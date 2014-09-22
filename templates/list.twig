@@ -17,8 +17,14 @@
         {% elseif file.type == 'dir' %}
             {% set link = "?fb_cp=" ~ paths.current ~ '/' ~ file.relativePathname %}
         {% endif %}
-        <a href="{{ link }}" {% if file.getType() == 'dir' %}data-fb-cp="{{ paths.current ~ '/' ~ file.relativePathname }}"{% endif %}>
-        {{ file.relativePathname }}
+
+        <a class="file-browser file-browser-label" href="{{ link }}" {% if file.getType() == 'dir' %}data-fb-cp="{{ paths.current ~ '/' ~ file.relativePathname }}"{% endif %}>
+            {% if file.getType() == 'file' %}
+                <img src="{{ thumbnail(paths.root ~ '/' ~ paths.current ~ '/' ~ file.relativePathname, 48, 48) }}" />
+            {% else %}
+                <img src="{{ icons }}/folder.svg" width="48" height="48"/>
+            {% endif %}
+            {{ file.relativePathname }}
         </a>
     </li>
     {% endfor %}
