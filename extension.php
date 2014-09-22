@@ -56,9 +56,14 @@ class Extension extends \Bolt\BaseExtension
             $path .= "$currentPath/";
         }
         $finder = new Finder();
+        $extensionRegex = '/\\.' . implode('|',
+            array_map('preg_quote',
+                $this->app['config']->get('general/accept_file_types'))) . '$/';
+        error_log($extensionRegex);
         $files =
             $finder
                 ->depth('== 0')
+                ->name($extensionRegex)
                 ->notName('*.exe')
                 ->notName('*.php')
                 ->notName('*.html')
