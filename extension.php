@@ -32,14 +32,11 @@ class Extension extends \Bolt\BaseExtension
 
     public function initialize()
     {
-        $this->addTwigFunction('file_browser', 'twigFileBrowser');
+        $this->addJquery();
+        $scriptPath = $this->app['paths']['app'] . "extensions/FileBrowser/assets/file_browser.js";
+        $this->app['extensions']->addJavascript($scriptPath, false);
         $this->app->get("/async/file_browser", array($this, "asyncGetFiles"))->bind("file_browser_get");
-
-        /*
-        $this->app->get("/waffles", array($this, 'show_waffles'))->bind('show_waffles');
-        $this->app->post("/waffles/add", array($this, 'add_waffles'))->bind('add_waffles');
-        $this->app->post("/waffles/clear", array($this, 'clear_waffles'))->bind('clear_waffles');
-        */
+        $this->addTwigFunction('file_browser', 'twigFileBrowser');
     }
 
     private function validateMode($mode) {

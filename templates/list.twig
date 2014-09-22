@@ -1,5 +1,5 @@
 {% if paths.up is not null %}
-    <a href="?fb_cp=/{{ paths.up }}">
+    <a href="?fb_cp=/{{ paths.up }}" class="file-browser-up" data-fb-cp="{{ paths.up }}">
         {{ __("Up one directory") }}
     </a>
 {% endif %}
@@ -9,7 +9,7 @@
 {{ __("No files found") }}
 </p>
 {% else %}
-<ul class="file-browser file-browser-list">
+<ul class="file-browser file-browser-list" data-fb-root="{{ paths.root }}">
     {% for file in files %}
     <li class="file-browser file-browser-{{ file.getType() }}">
         {% if file.type == 'file' %}
@@ -17,7 +17,7 @@
         {% elseif file.type == 'dir' %}
             {% set link = "?fb_cp=" ~ paths.current ~ '/' ~ file.relativePathname %}
         {% endif %}
-        <a href="{{ link }}">
+        <a href="{{ link }}" {% if file.getType() == 'dir' %}data-fb-cp="{{ paths.current ~ '/' ~ file.relativePathname }}"{% endif %}>
         {{ file.relativePathname }}
         </a>
     </li>
