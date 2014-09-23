@@ -21,6 +21,7 @@
     height: 80px;
     text-align: center;
     margin: 10px 5px;
+    vertical-align: bottom;
 }
 
 .file-browser-list .file-browser-item > a {
