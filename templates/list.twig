@@ -1,4 +1,5 @@
 {% macro linkto(linkpath, linkmode) %}?fb_cp={{linkpath|url_encode}}&fb_mode={{linkmode|url_encode}}{% endmacro %}
+
 {% macro format_filesize(bytes) %}
 {% if bytes > 1024 * 1024 * 1024 %}
     {{ (bytes / (1024 * 1024 * 1024)) | round(2) }} {{ __("GB") }}
@@ -11,7 +12,19 @@
 {% endif %}
 {% endmacro %}
 
-{% from _self import linkto, format_filesize %}
+{% macro format_filetime(timestamp) %}
+    {% set datetime = '@' ~ timestamp %}
+    {% set now = '@' ~ ("now"|date('U')) %}
+    {% if (datetime|localdate('%F')) == (now|localdate('%F')) %}
+        {{ __("Today at")}} {{ datetime|localdate('%H:%M') }}
+    {% elseif (datetime|localdate('%Y%W')) == (now|localdate('%Y%W')) %}
+        {{ datetime|localdate('%A at %H:%M') }}
+    {% else %}
+        {{ datetime|localdate('%x') }}
+    {% endif %}
+{% endmacro %}
+
+{% from _self import linkto, format_filesize, format_filetime %}
 
 <h1>{{ __("Files in ") ~ paths.current|default('/') }}</h1>
 {% spaceless %}
@@ -99,7 +112,11 @@
                 <span class="file-browser file-browser-label file-browser-filesize">
                     {% if file.getType() == 'file' %}
                         {{ format_filesize(file.getSize()) }}
-                    {% else %}
+                    {% endif %}
+                </span>
+                <span class="file-browser file-browser-label file-browser-filetime">
+                    {% if file.getType() == 'file' %}
+                        {{ format_filetime(file.getCTime()) }}
                     {% endif %}
                 </span>
             {% endif %}
