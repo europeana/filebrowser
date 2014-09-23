@@ -1,0 +1,3 @@
+# Override template path to point to your own Twig templates for the file
+# browser.
+# templates: 'theme/my-theme/filebrowser'
