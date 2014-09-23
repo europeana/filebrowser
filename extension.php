@@ -33,15 +33,31 @@ class Extension extends \Bolt\BaseExtension
     public function initialize()
     {
         $this->addJquery();
-        $assetsPath = $this->app['paths']['app'] . "extensions/FileBrowser/assets/";
-        $this->app['extensions']->addJavascript("$assetsPath/file_browser.js", false);
-        $this->app['extensions']->addCSS("$assetsPath/file_browser.css", false);
+        $this->app['extensions']->addJavascript($this->expandConfigPath("%assets%/file_browser.js"), false);
+        $cssFiles = isset($this->config['stylesheets']) ? $this->config['stylesheets'] : null;
+        if (is_array($cssFiles)) {
+            foreach ($cssFiles as $cssFile) {
+                $this->app['extensions']->addCSS($this->expandConfigPath($cssFile), false);
+            }
+        }
+        else {
+            $this->app['extensions']->addCSS($this->expandConfigPath("%assets%/file_browser.css"), false);
+        }
         $this->app->get("/async/file_browser", array($this, "asyncGetFiles"))->bind("file_browser_get");
         $this->addTwigFunction('file_browser', 'twigFileBrowser');
     }
 
+    private function getAllowedModes() {
+        if (isset($this->config['modes'])) {
+            return $this->config['modes'];
+        }
+        else {
+            return array('list', 'icons');
+        }
+    }
+
     private function validateMode($mode) {
-        $allowedModes = array('list', 'icons');
+        $allowedModes = $this->getAllowedModes();
         if (!in_array($mode, $allowedModes)) {
             $imploded = implode(', ', $allowedModes);
             throw new \Exception("Invalid mode: $mode, allowed modes are: $imploded");
@@ -98,6 +114,7 @@ class Extension extends \Bolt\BaseExtension
         $iconsPath = $this->app['paths']['app'] . "extensions/FileBrowser/assets/icons";
         return array(
             'mode' => $mode,
+            'allowedModes' => $this->getAllowedModes(),
             'paths' => $paths,
             'icons' => $iconsPath,
             'files' => $this->listFiles($rootPath, $currentPath));
@@ -122,7 +139,9 @@ class Extension extends \Bolt\BaseExtension
     }
 
     public function asyncGetFiles(Request $request) {
-        $mode = ($request->get('fb_mode') ? $request->get('fb_mode') : 'list');
+        $allowedModes = $this->getAllowedModes();
+        $defaultMode = reset($allowedModes);
+        $mode = ($request->get('fb_mode') ? $request->get('fb_mode') : $defaultMode);
         $this->validateMode($mode);
         $rootPath = ($request->get('fb_root') ? $request->get('fb_root') : '');
         $currentPath = ($request->get('fb_cp') ? $request->get('fb_cp') : '');
@@ -131,8 +150,13 @@ class Extension extends \Bolt\BaseExtension
         return $this->render("list.twig", $context);
     }
 
-    public function twigFileBrowser($mode = 'list', $rootPath = '', $currentPath = '')
+    public function twigFileBrowser($mode = null, $rootPath = '', $currentPath = '')
     {
+        $allowedModes = $this->getAllowedModes();
+        $defaultMode = reset($allowedModes);
+        if ($mode === null) {
+            $mode = $defaultMode;
+        }
         $fbmode = $this->app['request']->get('fb_mode');
         if (!empty($fbmode)) {
             $mode = $fbmode;
@@ -148,12 +172,36 @@ class Extension extends \Bolt\BaseExtension
         return new \Twig_Markup($this->render("container.twig", $context), 'UTF-8');
     }
 
+    private function expandConfigPath($path) {
+        $searchReplace = array(
+                '%self%' => dirname(__FILE__),
+                '%assets%' => $this->app['paths']['app'] . "extensions/FileBrowser/assets",
+                '%theme%' => preg_replace('#/$#', '', $this->app['paths']['themepath']),
+            );
+        $search = array_keys($searchReplace);
+        $replace = array_values($searchReplace);
+        return str_replace($search, $replace, $path);
+    }
+
     private function render($template, $data) {
-        $templatesPath = $this->config['templates'];
-        if (!$templatesPath) {
-            $templatesPath = dirname(__FILE__) . '/templates';
+        if (isset($this->config['templates'])) {
+            $templatesPaths = $this->config['templates'];
         }
-        $this->app['twig.loader.filesystem']->addPath($templatesPath);
+        else {
+            $templatesPaths = null;
+        }
+        if (is_null($templatesPaths)) {
+            $templatesPaths = array('%self%/templates');
+        }
+        elseif (!is_array($templatesPaths)) {
+            $templatesPaths = array($templatesPaths);
+        }
+        foreach ($templatesPaths as $templatesPath) {
+            $templatesPath = $this->expandConfigPath($templatesPath);
+            if (file_exists($templatesPath)) {
+                $this->app['twig.loader.filesystem']->addPath($templatesPath);
+            }
+        }
         return new \Twig_Markup($this->app['render']->render($template, $data), 'UTF-8');
     }
 

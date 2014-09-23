@@ -1,3 +1,41 @@
+# Configuration file for the FileBrowser extension.
+
+# For paths, some variables are provided for dynamic / configuration-dependent
+# values:
+#
+# - '%theme%' points to the currently selected theme directory (e.g.
+#             themes/base-2014)
+# - '%self%' points to the extension's root directory (e.g.
+#            app/extensions/FileBrowser)
+# - '%assets%' points to the extension's own assets directory (e.g.
+#              app/extensions/FileBrowser/assets)
+
 # Override template path to point to your own Twig templates for the file
-# browser.
-# templates: 'theme/my-theme/filebrowser'
+# browser, relative to the Bolt installation's root directory.
+# Instead of just one path, a list of paths can be specified to provide more
+# than one search location for templates; this allows you to override templates
+# individually.
+#
+# templates:
+#     - '%theme%/filebrowser'
+#     - '%self%/templates'
+
+# Provide a list of CSS stylesheets to include, overriding the default
+# stylesheet, relative to the Bolt installation's root directory.
+# Provide an empty list to not include any stylesheets at all; provide null
+# or comment out the `stylesheets` field to use the default stylesheet that
+# comes with the FileBrowser extension.
+#
+# stylesheets:
+#     - '%assets%/file_browser.css'
+
+# A list of display modes for the file browser widget. Note that your template
+# must be prepared to handle each of them, otherwise you won't see a useful
+# effect.
+#
+# Modes will be displayed in the order listed here, unless your template
+# implements them otherwise.
+#
+# The first mode in the list will be used as the default mode.
+#
+# modes: [ 'list', 'icons' ]
