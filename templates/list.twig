@@ -31,7 +31,7 @@
         {% else %}
             {% set icon_size = 32 %}
         {% endif %}
-        {% set thumb_src = icons ~ "/folder_up.svg" %}
+        {% set thumb_src = file_browser_icon('@up') %}
         {% set link = linkto(paths.up, mode) %}
         {% set icon_type = 'icon' %}
 
@@ -54,18 +54,18 @@
         {% endif %}
 
         {% if type == 'file' %}
-            {% if file.getExtension in [ 'png', 'jpg', 'jpeg', 'gif' ] %}
+            {% if file.getExtension() in [ 'png', 'jpg', 'jpeg', 'gif' ] %}
                 {% set thumb_src = thumbnail(paths.root ~ '/' ~ absolute_pathname, icon_size, icon_size) %}
                 {% set icon_type = "thumbnail" %}
                 {% set icon_size = icon_size * 7 / 8 %}
             {% else %}
-                {% set thumb_src = icons ~ "/document.svg" %}
+                {% set thumb_src = file_browser_icon(file.getExtension()) %}
                 {% set icon_type = "default" %}
             {% endif %}
             {% set file_size = file.getSize() %}
             {% set file_ctime = file.getCTime() %}
         {% else %}
-            {% set thumb_src = icons ~ "/folder.svg" %}
+            {% set thumb_src = file_browser_icon('@dir') %}
             {% set icon_type = "default" %}
         {% endif %}
 
