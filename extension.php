@@ -32,6 +32,28 @@ class Extension extends \Bolt\BaseExtension
 
     public function initialize()
     {
+        $this->configPathSearchReplace = array(
+                '%self%' => dirname(__FILE__),
+                '%assets%' => $this->app['paths']['app'] . "extensions/FileBrowser/assets",
+                '%theme%' => preg_replace('#/$#', '', $this->app['paths']['themepath']),
+            );
+
+        $this->iconMapping = array(
+            '@dir' => 'folder.svg',
+            '@up' => 'folder_up.svg',
+            '@default' => 'document.svg',
+        );
+        if (isset($this->config['icons']['iconMapping'])) {
+            $this->iconMapping = array_merge($this->iconMapping, $this->config['icons']['iconMapping']);
+        }
+        if (isset($this->config['icons']['path'])) {
+            $path = $this->config['icons']['path'];
+        }
+        else {
+            $path = '%assets%/icons';
+        }
+        $this->iconsPath = $this->expandConfigPath($path);
+
         $this->addJquery();
         $this->app['extensions']->addJavascript($this->expandConfigPath("%assets%/file_browser.js"), false);
         $cssFiles = isset($this->config['stylesheets']) ? $this->config['stylesheets'] : null;
@@ -45,6 +67,8 @@ class Extension extends \Bolt\BaseExtension
         }
         $this->app->get("/async/file_browser", array($this, "asyncGetFiles"))->bind("file_browser_get");
         $this->addTwigFunction('file_browser', 'twigFileBrowser');
+        $this->addTwigFunction('file_browser_icon', 'twigFileBrowserIcon');
+
     }
 
     private function getAllowedModes() {
@@ -108,10 +132,14 @@ class Extension extends \Bolt\BaseExtension
         return array_filter(explode('/', $path), $f);
     }
 
+    private function getIconsPath() {
+        return $this->iconsPath;
+    }
+
     private function getContext($mode, $rootPath, $currentPath) {
         $paths = $this->sanitizePaths($rootPath, $currentPath);
         list($rootPath, $currentPath, $upPath) = array_values($paths);
-        $iconsPath = $this->app['paths']['app'] . "extensions/FileBrowser/assets/icons";
+        $iconsPath = $this->getIconsPath();
         return array(
             'mode' => $mode,
             'allowedModes' => $this->getAllowedModes(),
@@ -172,14 +200,19 @@ class Extension extends \Bolt\BaseExtension
         return new \Twig_Markup($this->render("container.twig", $context), 'UTF-8');
     }
 
+    public function twigFileBrowserIcon($extension) {
+        if (isset($this->iconMapping[$extension])) {
+            $basename = $this->iconMapping[$extension];
+        }
+        else {
+            $basename = $this->iconMapping['@default'];
+        }
+        return $this->getIconsPath() . '/' . $basename;
+    }
+
     private function expandConfigPath($path) {
-        $searchReplace = array(
-                '%self%' => dirname(__FILE__),
-                '%assets%' => $this->app['paths']['app'] . "extensions/FileBrowser/assets",
-                '%theme%' => preg_replace('#/$#', '', $this->app['paths']['themepath']),
-            );
-        $search = array_keys($searchReplace);
-        $replace = array_values($searchReplace);
+        $search = array_keys($this->configPathSearchReplace);
+        $replace = array_values($this->configPathSearchReplace);
         return str_replace($search, $replace, $path);
     }
 
