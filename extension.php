@@ -149,7 +149,11 @@ class Extension extends \Bolt\BaseExtension
     }
 
     private function render($template, $data) {
-        $this->app['twig.loader.filesystem']->addPath(dirname(__FILE__) . '/templates');
+        $templatesPath = $this->config['templates'];
+        if (!$templatesPath) {
+            $templatesPath = dirname(__FILE__) . '/templates';
+        }
+        $this->app['twig.loader.filesystem']->addPath($templatesPath);
         return new \Twig_Markup($this->app['render']->render($template, $data), 'UTF-8');
     }
 
