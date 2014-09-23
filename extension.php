@@ -43,8 +43,8 @@ class Extension extends \Bolt\BaseExtension
             '@up' => 'folder_up.svg',
             '@default' => 'document.svg',
         );
-        if (isset($this->config['icons']['iconMapping'])) {
-            $this->iconMapping = array_merge($this->iconMapping, $this->config['icons']['iconMapping']);
+        if (isset($this->config['icons']['mapping'])) {
+            $this->iconMapping = array_merge($this->iconMapping, $this->config['icons']['mapping']);
         }
         if (isset($this->config['icons']['path'])) {
             $path = $this->config['icons']['path'];
@@ -53,6 +53,7 @@ class Extension extends \Bolt\BaseExtension
             $path = '%assets%/icons';
         }
         $this->iconsPath = $this->expandConfigPath($path);
+        $this->configPathSearchReplace['%icons%'] = $this->iconsPath;
 
         $this->addJquery();
         $this->app['extensions']->addJavascript($this->expandConfigPath("%assets%/file_browser.js"), false);
