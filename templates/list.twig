@@ -1,39 +1,70 @@
+{% macro linkto(linkpath, linkmode) %}?fb_cp={{linkpath|url_encode}}&fb_mode={{linkmode|url_encode}}{% endmacro %}
+{% from _self import linkto %}
+
 {% if paths.up is not null %}
-    <a href="?fb_cp=/{{ paths.up }}" class="file-browser-up" data-fb-cp="{{ paths.up }}">
+    <a href="{{ linkto(paths.up, mode) }}" class="file-browser-up" data-fb-cp="{{ paths.up }}">
         {{ __("Up one directory") }}
     </a>
 {% endif %}
 <h1>{{ __("Files in ") ~ paths.current|default('/') }}</h1>
-{% if files is empty %}
-<p class="file-browser file-browser-empty-list">
-{{ __("No files found") }}
-</p>
-{% else %}
-<ul class="file-browser file-browser-list" data-fb-root="{{ paths.root }}">
-    {% for file in files %}
-    <li class="file-browser file-browser-{{ file.getType() }}">
-        {% if file.type == 'file' %}
-            {% set link = "/files/" ~ paths.current ~ '/' ~ file.relativePathname %}
-        {% elseif file.type == 'dir' %}
-            {% set link = "?fb_cp=" ~ paths.current ~ '/' ~ file.relativePathname %}
-        {% endif %}
-
-        <a class="file-browser file-browser-label"
-            href="{{ link }}"
-            {% if file.getType() == 'dir' %}
-               data-fb-cp="{{ paths.current ~ '/' ~ file.relativePathname }}"
-            {% else %}
-               target="file_popup"
-            {% endif %}
+<div class="file-browser file-browser-buttons">
+    {% for bmode in [ 'list', 'icons' ] %}
+        <a class="file-browser file-browser-button file-browser-mode-button {% if bmode == mode %}file-browser-button-active{% endif %}"
+            href="{{ linkto(paths.current, bmode) }}"
+            data-fb-mode="{{bmode}}"
         >
-            {% if file.getType() == 'file' %}
-                <img src="{{ thumbnail(paths.root ~ '/' ~ paths.current ~ '/' ~ file.relativePathname, 48, 48) }}" />
-            {% else %}
-                <img src="{{ icons }}/folder.svg" width="48" height="48"/>
-            {% endif %}
-            {{ file.relativePathname }}
+            {{ bmode }}
         </a>
-    </li>
     {% endfor %}
-</ul>
+</div>
+{% if files is empty %}
+    <p class="file-browser file-browser-list file-browser-empty-list"
+        data-fb-root="{{ paths.root }}"
+        data-fb-cp="{{ paths.current }}"
+        data-fb-mode="{{ mode }}">
+        {{ __("No files found") }}
+    </p>
+{% else %}
+    <ul class="file-browser file-browser-list file-browser-details-{{ mode }}"
+        data-fb-root="{{ paths.root }}"
+        data-fb-cp="{{ paths.current }}"
+        data-fb-mode="{{ mode }}"
+    >
+        {% for file in files %}
+        <li class="file-browser file-browser-{{ file.getType() }}">
+            {% set absolute_pathname = paths.current ~ '/' ~ file.relativePathname %}
+            {% if file.type == 'file' %}
+                {% set link = "/files/" ~ absolute_pathname %}
+            {% elseif file.type == 'dir' %}
+                {% set link = linkto(absolute_pathname, mode) %}
+            {% endif %}
+
+            {% if mode == 'icons' %}
+                {% set icon_size = 64 %}
+            {% else %}
+                {% set icon_size = 32 %}
+            {% endif %}
+
+            <a class="file-browser file-browser-item"
+                href="{{ link }}"
+                {% if file.getType() == 'dir' %}
+                   data-fb-cp="{{ absolute_pathname }}"
+                {% else %}
+                   target="file_popup"
+                {% endif %}
+            >
+                <img class="file-browser file-browser-thumbnail file-browser-icon"
+                {% if file.getType() == 'file' %}
+                         src="{{ thumbnail(paths.root ~ '/' ~ absolute_pathname, icon_size, icon_size) }}"
+                {% else %}
+                         src="{{ icons }}/folder.svg" width="{{ icon_size }}" height="{{ icon_size }}"
+                {% endif %}
+                />
+                <span class="file-browser file-browser-label">
+                {{ file.relativePathname }}
+                </span>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
 {% endif %}

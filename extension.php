@@ -132,6 +132,10 @@ class Extension extends \Bolt\BaseExtension
 
     public function twigFileBrowser($mode = 'list', $rootPath = '', $currentPath = '')
     {
+        $fbmode = $this->app['request']->get('fb_mode');
+        if (!empty($fbmode)) {
+            $mode = $fbmode;
+        }
         $this->validateMode($mode);
         $fbcp = $this->app['request']->get('fb_cp');
         if (!empty($fbcp)) {
