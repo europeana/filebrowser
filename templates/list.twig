@@ -1,30 +1,4 @@
-{% macro linkto(linkpath, linkmode) %}?fb_cp={{linkpath|url_encode}}&fb_mode={{linkmode|url_encode}}{% endmacro %}
-
-{% macro format_filesize(bytes) %}
-{% if bytes > 1024 * 1024 * 1024 %}
-    {{ (bytes / (1024 * 1024 * 1024)) | round(2) }} {{ __("GB") }}
-{% elseif bytes > 1024 * 1024 %}
-    {{ (bytes / (1024 * 1024)) | round(2) }} {{ __("MB") }}
-{% elseif bytes > 1024 %}
-    {{ (bytes / 1024) | round(2) }} {{ __("kB") }}
-{% else %}
-    {{ bytes }} {{ __("bytes") }}
-{% endif %}
-{% endmacro %}
-
-{% macro format_filetime(timestamp) %}
-    {% set datetime = '@' ~ timestamp %}
-    {% set now = '@' ~ ("now"|date('U')) %}
-    {% if (datetime|localdate('%F')) == (now|localdate('%F')) %}
-        {{ __("Today at")}} {{ datetime|localdate('%H:%M') }}
-    {% elseif (datetime|localdate('%Y%W')) == (now|localdate('%Y%W')) %}
-        {{ datetime|localdate('%A at %H:%M') }}
-    {% else %}
-        {{ datetime|localdate('%x') }}
-    {% endif %}
-{% endmacro %}
-
-{% from _self import linkto, format_filesize, format_filetime %}
+{% from 'macros.twig' import linkto, format_filesize, format_filetime %}
 
 <h1>{{ __("Files in ") ~ paths.current|default('/') }}</h1>
 {% spaceless %}
@@ -45,31 +19,31 @@
     data-fb-mode="{{ mode }}"
 >
     {% if paths.up is not null %}
+        {% set relative_pathname = paths.up %}
+        {% set absolute_pathname = paths.up %}
+        {% set type = 'dir' %}
+        {% if type == 'file' %}
+            {% set link = linkto(absolute_pathname, mode) %}
+        {% endif %}
+
         {% if mode == 'icons' %}
             {% set icon_size = 64 %}
         {% else %}
             {% set icon_size = 32 %}
         {% endif %}
         {% set thumb_src = icons ~ "/folder_up.svg" %}
+        {% set link = linkto(paths.up, mode) %}
+        {% set icon_type = 'icon' %}
 
-        <li class="file-browser file-browser-item file-browser-dir">
-            <a href="{{ linkto(paths.up, mode) }}" class="file-browser-up" data-fb-cp="{{ paths.up }}">
-                <img class="file-browser file-browser-thumbnail file-browser-icon file-browser-icon-dir"
-                    src="{{ thumb_src }}"
-                    width="{{ icon_size }}" height="{{ icon_size }}"
-                />
-                <span class="file-browser file-browser-label">
-                    {{ paths.up|default('/') }}
-                </span>
-            </a>
-        </li>
+        {% include 'item.twig' %}
     {% endif %}
     {% for file in files %}
-    <li class="file-browser file-browser-item file-browser-{{ file.getType() }}">
-        {% set absolute_pathname = paths.current ~ '/' ~ file.relativePathname %}
-        {% if file.type == 'file' %}
+        {% set relative_pathname = file.relativePathname %}
+        {% set absolute_pathname = paths.current ~ '/' ~ relative_pathname %}
+        {% set type = file.type %}
+        {% if type == 'file' %}
             {% set link = "/files/" ~ absolute_pathname %}
-        {% elseif file.type == 'dir' %}
+        {% elseif type == 'dir' %}
             {% set link = linkto(absolute_pathname, mode) %}
         {% endif %}
 
@@ -79,7 +53,7 @@
             {% set icon_size = 32 %}
         {% endif %}
 
-        {% if file.getType() == 'file' %}
+        {% if type == 'file' %}
             {% if file.getExtension in [ 'png', 'jpg', 'jpeg', 'gif' ] %}
                 {% set thumb_src = thumbnail(paths.root ~ '/' ~ absolute_pathname, icon_size, icon_size) %}
                 {% set icon_type = "thumbnail" %}
@@ -88,40 +62,14 @@
                 {% set thumb_src = icons ~ "/document.svg" %}
                 {% set icon_type = "default" %}
             {% endif %}
+            {% set file_size = file.getSize() %}
+            {% set file_ctime = file.getCTime() %}
         {% else %}
             {% set thumb_src = icons ~ "/folder.svg" %}
             {% set icon_type = "default" %}
         {% endif %}
 
-        <a class="file-browser"
-            href="{{ link }}"
-            {% if file.getType() == 'dir' %}
-               data-fb-cp="{{ absolute_pathname }}"
-            {% else %}
-               target="file_popup"
-            {% endif %}
-        >
-            <img class="file-browser file-browser-thumbnail file-browser-icon file-browser-icon-{{icon_type}}"
-                src="{{ thumb_src }}"
-                width="{{ icon_size }}" height="{{ icon_size }}"
-            />
-            <span class="file-browser file-browser-label file-browser-filename">
-            {{ file.relativePathname }}
-            </span>
-            {% if mode == 'list' %}
-                <span class="file-browser file-browser-label file-browser-filesize">
-                    {% if file.getType() == 'file' %}
-                        {{ format_filesize(file.getSize()) }}
-                    {% endif %}
-                </span>
-                <span class="file-browser file-browser-label file-browser-filetime">
-                    {% if file.getType() == 'file' %}
-                        {{ format_filetime(file.getCTime()) }}
-                    {% endif %}
-                </span>
-            {% endif %}
-        </a>
-    </li>
+        {% include 'item.twig' %}
     {% else %}
     <li class="file-browser file-browser-empty">
         {{ __("No files found") }}
