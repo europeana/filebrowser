@@ -11,8 +11,9 @@ $(document).ready(function(){
         if (typeof(targetPath) !== typeof('')) {
             targetPath = currentPath;
         }
-        container.append(
-            $('<p class="file-browser file-browser-loading" />')
+        listElem.addClass("file-browser-list-loading");
+        listElem.append(
+            $('<li class="file-browser file-browser-loading" />')
                 .text('Loading...'));
         $.get('/async/file_browser?fb_cp=' + targetPath + '&fb_mode=' + mode,
             function(html) {
