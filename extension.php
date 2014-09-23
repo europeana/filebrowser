@@ -33,8 +33,9 @@ class Extension extends \Bolt\BaseExtension
     public function initialize()
     {
         $this->addJquery();
-        $scriptPath = $this->app['paths']['app'] . "extensions/FileBrowser/assets/file_browser.js";
-        $this->app['extensions']->addJavascript($scriptPath, false);
+        $assetsPath = $this->app['paths']['app'] . "extensions/FileBrowser/assets/";
+        $this->app['extensions']->addJavascript("$assetsPath/file_browser.js", false);
+        $this->app['extensions']->addCSS("$assetsPath/file_browser.css", false);
         $this->app->get("/async/file_browser", array($this, "asyncGetFiles"))->bind("file_browser_get");
         $this->addTwigFunction('file_browser', 'twigFileBrowser');
     }

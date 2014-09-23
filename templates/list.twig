@@ -1,12 +1,20 @@
 {% macro linkto(linkpath, linkmode) %}?fb_cp={{linkpath|url_encode}}&fb_mode={{linkmode|url_encode}}{% endmacro %}
-{% from _self import linkto %}
-
-{% if paths.up is not null %}
-    <a href="{{ linkto(paths.up, mode) }}" class="file-browser-up" data-fb-cp="{{ paths.up }}">
-        {{ __("Up one directory") }}
-    </a>
+{% macro format_filesize(bytes) %}
+{% if bytes > 1024 * 1024 * 1024 %}
+    {{ (bytes / (1024 * 1024 * 1024)) | round(2) }} {{ __("GB") }}
+{% elseif bytes > 1024 * 1024 %}
+    {{ (bytes / (1024 * 1024)) | round(2) }} {{ __("MB") }}
+{% elseif bytes > 1024 %}
+    {{ (bytes / 1024) | round(2) }} {{ __("kB") }}
+{% else %}
+    {{ bytes }} {{ __("bytes") }}
 {% endif %}
+{% endmacro %}
+
+{% from _self import linkto, format_filesize %}
+
 <h1>{{ __("Files in ") ~ paths.current|default('/') }}</h1>
+{% spaceless %}
 <div class="file-browser file-browser-buttons">
     {% for bmode in [ 'list', 'icons' ] %}
         <a class="file-browser file-browser-button file-browser-mode-button {% if bmode == mode %}file-browser-button-active{% endif %}"
@@ -17,54 +25,89 @@
         </a>
     {% endfor %}
 </div>
-{% if files is empty %}
-    <p class="file-browser file-browser-list file-browser-empty-list"
-        data-fb-root="{{ paths.root }}"
-        data-fb-cp="{{ paths.current }}"
-        data-fb-mode="{{ mode }}">
-        {{ __("No files found") }}
-    </p>
-{% else %}
-    <ul class="file-browser file-browser-list file-browser-details-{{ mode }}"
-        data-fb-root="{{ paths.root }}"
-        data-fb-cp="{{ paths.current }}"
-        data-fb-mode="{{ mode }}"
-    >
-        {% for file in files %}
-        <li class="file-browser file-browser-{{ file.getType() }}">
-            {% set absolute_pathname = paths.current ~ '/' ~ file.relativePathname %}
-            {% if file.type == 'file' %}
-                {% set link = "/files/" ~ absolute_pathname %}
-            {% elseif file.type == 'dir' %}
-                {% set link = linkto(absolute_pathname, mode) %}
-            {% endif %}
+{% endspaceless %}
+<ul class="file-browser file-browser-list file-browser-list-{{ mode }}"
+    data-fb-root="{{ paths.root }}"
+    data-fb-cp="{{ paths.current }}"
+    data-fb-mode="{{ mode }}"
+>
+    {% if paths.up is not null %}
+        {% if mode == 'icons' %}
+            {% set icon_size = 64 %}
+        {% else %}
+            {% set icon_size = 32 %}
+        {% endif %}
+        {% set thumb_src = icons ~ "/folder_up.svg" %}
 
-            {% if mode == 'icons' %}
-                {% set icon_size = 64 %}
-            {% else %}
-                {% set icon_size = 32 %}
-            {% endif %}
-
-            <a class="file-browser file-browser-item"
-                href="{{ link }}"
-                {% if file.getType() == 'dir' %}
-                   data-fb-cp="{{ absolute_pathname }}"
-                {% else %}
-                   target="file_popup"
-                {% endif %}
-            >
-                <img class="file-browser file-browser-thumbnail file-browser-icon"
-                {% if file.getType() == 'file' %}
-                         src="{{ thumbnail(paths.root ~ '/' ~ absolute_pathname, icon_size, icon_size) }}"
-                {% else %}
-                         src="{{ icons }}/folder.svg" width="{{ icon_size }}" height="{{ icon_size }}"
-                {% endif %}
+        <li class="file-browser file-browser-item file-browser-dir">
+            <a href="{{ linkto(paths.up, mode) }}" class="file-browser-up" data-fb-cp="{{ paths.up }}">
+                <img class="file-browser file-browser-thumbnail file-browser-icon file-browser-icon-dir"
+                    src="{{ thumb_src }}"
+                    width="{{ icon_size }}" height="{{ icon_size }}"
                 />
                 <span class="file-browser file-browser-label">
-                {{ file.relativePathname }}
+                    {{ paths.up|default('/') }}
                 </span>
             </a>
         </li>
-        {% endfor %}
-    </ul>
-{% endif %}
+    {% endif %}
+    {% for file in files %}
+    <li class="file-browser file-browser-item file-browser-{{ file.getType() }}">
+        {% set absolute_pathname = paths.current ~ '/' ~ file.relativePathname %}
+        {% if file.type == 'file' %}
+            {% set link = "/files/" ~ absolute_pathname %}
+        {% elseif file.type == 'dir' %}
+            {% set link = linkto(absolute_pathname, mode) %}
+        {% endif %}
+
+        {% if mode == 'icons' %}
+            {% set icon_size = 64 %}
+        {% else %}
+            {% set icon_size = 32 %}
+        {% endif %}
+
+        {% if file.getType() == 'file' %}
+            {% if file.getExtension in [ 'png', 'jpg', 'jpeg', 'gif' ] %}
+                {% set thumb_src = thumbnail(paths.root ~ '/' ~ absolute_pathname, icon_size, icon_size) %}
+                {% set icon_type = "thumbnail" %}
+                {% set icon_size = icon_size * 7 / 8 %}
+            {% else %}
+                {% set thumb_src = icons ~ "/document.svg" %}
+                {% set icon_type = "default" %}
+            {% endif %}
+        {% else %}
+            {% set thumb_src = icons ~ "/folder.svg" %}
+            {% set icon_type = "default" %}
+        {% endif %}
+
+        <a class="file-browser"
+            href="{{ link }}"
+            {% if file.getType() == 'dir' %}
+               data-fb-cp="{{ absolute_pathname }}"
+            {% else %}
+               target="file_popup"
+            {% endif %}
+        >
+            <img class="file-browser file-browser-thumbnail file-browser-icon file-browser-icon-{{icon_type}}"
+                src="{{ thumb_src }}"
+                width="{{ icon_size }}" height="{{ icon_size }}"
+            />
+            <span class="file-browser file-browser-label file-browser-filename">
+            {{ file.relativePathname }}
+            </span>
+            {% if mode == 'list' %}
+                <span class="file-browser file-browser-label file-browser-filesize">
+                    {% if file.getType() == 'file' %}
+                        {{ format_filesize(file.getSize()) }}
+                    {% else %}
+                    {% endif %}
+                </span>
+            {% endif %}
+        </a>
+    </li>
+    {% else %}
+    <li class="file-browser file-browser-empty">
+        {{ __("No files found") }}
+    </li>
+    {% endfor %}
+</ul>
