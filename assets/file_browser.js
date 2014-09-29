@@ -4,7 +4,6 @@ $(document).ready(function(){
         var rootPath = listElem.data('fb-root');
         var currentPath = listElem.data('fb-cp');
         var currentMode = listElem.data('fb-mode');
-        // console.log(targetPath, mode, typeof(mode), currentMode);
         if (typeof(mode) !== typeof('') || mode === '') {
             mode = currentMode;
         }
@@ -22,10 +21,12 @@ $(document).ready(function(){
     };
 
     // make sure we don't have duplicate events bound.. Doesn't work unfortunately.
-    $('.file-browser-container').off('click.filebrowser');
+    // $('.file-browser-container').off('click.filebrowser');
+    //
+    // Of course this doesn't work - this code only runs once on startup, and
+    // at that point, nothing is bound to this event yet.
 
     $('.file-browser-container').on('click.filebrowser', '.file-browser-dir a, a.file-browser-up', function(e){
-        console.log('click');
         var container = $(this).closest('.file-browser-container');
         var targetPath = $(this).data('fb-cp');
         navigate(targetPath, null, container);
