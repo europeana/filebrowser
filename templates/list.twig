@@ -24,9 +24,6 @@
         {% set relative_pathname = paths.up %}
         {% set absolute_pathname = paths.up %}
         {% set type = 'dir' %}
-        {% if type == 'file' %}
-            {% set link = linkto(absolute_pathname, mode) %}
-        {% endif %}
 
         {% if mode == 'icons' %}
             {% set icon_size = 64 %}
