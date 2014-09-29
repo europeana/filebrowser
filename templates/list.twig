@@ -41,7 +41,7 @@
         {% set absolute_pathname = paths.current ~ '/' ~ relative_pathname %}
         {% set type = file.type %}
         {% if type == 'file' %}
-            {% set link = "/files/" ~ absolute_pathname %}
+            {% set link = "/files/" ~ paths.root ~ '/' ~ absolute_pathname %}
         {% elseif type == 'dir' %}
             {% set link = linkto(absolute_pathname, mode) %}
         {% endif %}
