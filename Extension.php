@@ -34,7 +34,7 @@ class Extension extends \Bolt\BaseExtension
     {
         $this->configPathSearchReplace = array(
                 '%self%' => dirname(__FILE__),
-                '%assets%' => $this->app['paths']['app'] . "extensions/FileBrowser/assets",
+                '%assets%' => $this->app['paths']['extensions'] . "vendor/europeana/filebrowser/assets",
                 '%theme%' => preg_replace('#/$#', '', $this->app['paths']['themepath']),
             );
 
