@@ -1,4 +1,23 @@
 $(document).ready(function(){
+    var buildQueryString = function(data) {
+        var keys = data.getOwnPropertyNames();
+        var i;
+        var queryStringItems = [];
+        var key;
+        var value;
+
+        for (i = 0; i < keys.size; ++i) {
+            key = keys[i];
+            value = data[key];
+            queryStringItems.append(
+                encodeURIComponent(key) +
+                '=' +
+                encodeURIComponent(value));
+        }
+
+        return '?' + queryStringItems.join('&');
+    };
+
     var navigate = function(targetPath, mode, container) {
         var listElem = $('.file-browser-list', container);
         var rootPath = listElem.data('fb-root');
@@ -14,7 +33,11 @@ $(document).ready(function(){
         listElem.append(
             $('<li class="file-browser file-browser-loading" />')
                 .text('Loading...'));
-        $.get('/async/file_browser?fb_cp=' + targetPath + '&fb_mode=' + mode + '&fb_root=' + rootPath,
+        $.get('/async/file_browser' +
+            buildQueryString({
+                fb_cp: targetPath,
+                fb_mode: mode,
+                fb_root: rootPath}));
             function(html) {
                 container.html(html);
             });
