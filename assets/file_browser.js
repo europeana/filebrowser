@@ -37,7 +37,7 @@ $(document).ready(function(){
             buildQueryString({
                 fb_cp: targetPath,
                 fb_mode: mode,
-                fb_root: rootPath}));
+                fb_root: rootPath}),
             function(html) {
                 container.html(html);
             });
