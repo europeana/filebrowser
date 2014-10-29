@@ -1,6 +1,6 @@
 $(document).ready(function(){
     var buildQueryString = function(data) {
-        var keys = data.getOwnPropertyNames();
+        var keys = Object.getOwnPropertyNames(data);
         var i;
         var queryStringItems = [];
         var key;
