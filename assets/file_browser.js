@@ -6,10 +6,10 @@ $(document).ready(function(){
         var key;
         var value;
 
-        for (i = 0; i < keys.size; ++i) {
+        for (i = 0; i < keys.length; ++i) {
             key = keys[i];
             value = data[key];
-            queryStringItems.append(
+            queryStringItems.push(
                 encodeURIComponent(key) +
                 '=' +
                 encodeURIComponent(value));
