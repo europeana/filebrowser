@@ -1,15 +1,15 @@
 $(document).ready(function(){
     var buildQueryString = function(data) {
-        var keys = data.getOwnPropertyNames();
+        var keys = Object.getOwnPropertyNames(data);
         var i;
         var queryStringItems = [];
         var key;
         var value;
 
-        for (i = 0; i < keys.size; ++i) {
+        for (i = 0; i < keys.length; ++i) {
             key = keys[i];
             value = data[key];
-            queryStringItems.append(
+            queryStringItems.push(
                 encodeURIComponent(key) +
                 '=' +
                 encodeURIComponent(value));
@@ -37,7 +37,7 @@ $(document).ready(function(){
             buildQueryString({
                 fb_cp: targetPath,
                 fb_mode: mode,
-                fb_root: rootPath}));
+                fb_root: rootPath}),
             function(html) {
                 container.html(html);
             });
